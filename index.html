@@ -1,24 +1,77 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <meta charset="UTF-8">
-    <title>Hello World!!</title>
-    <style>
-        table { border-collapse: collapse; }
-        table, th, td { border: 1px solid black; }
-    </style>
-</head>
+    <title>Electron based gui for micropython REPL over serialport!</title>
+  </head>
+  <body>
+    <h1>Serial terminal</h1>
+     <textarea rows="30" cols="50" id="incomingData"></textarea>
+     </br>
+     <textarea rows="1" cols="50" id="inputText"></textarea>
+     </br>
 
-<body>
-    <h1>Hello World!</h1>
+     <input id="btnCartInsert" type="submit" name="btnCartInsert" value="Cartridge Insert"/>
+     <input id="button" type="submit" name="button" value="Test"/>
 
-    We are using Node.js <span id="node-version"></span>, Chromium <span id="chrome-version"></span>, Electron <span id="electron-version"></span>, and Serialport <span id="serialport-version"></span>
+    <script>
 
-    <div id="error"></div>
-    <div id="ports"></div>
-</body>
+        // Load serialport module
+        const { SerialPort } = require('serialport')
 
-<script src="./renderer.js"></script>
+        // Initialize serialport with 115200 baudrate.
+        const sp = new SerialPort({ path: '/dev/tty.usbserial-FT0TCWAS', baudRate: 115200, dataBits: 8, stopBits: 1, parity: "none", lock: false });
+        //const sp = new SerialPort({ path: '/dev/tty.usbserial-FTDVSTTW', baudRate: 115200, dataBits: 8, stopBits: 1, parity: "none", lock: false });
 
+        //append incoming data to the textarea.
+        sp.on('data', (data) => {
+            document.getElementById("incomingData").value += "\n Received:"+data;
+            console.log("\n Received:"+data)
+        });
+
+
+        function writeonSer(data){
+            //Write the data to serial port.
+            sp.write(data, function(err) {
+                if (err) {
+                    return console.log('Error on write: ', err.message);
+                }
+                console.log('message written: ' + data);
+                document.getElementById("incomingData").value += "\nMessage Sent:"+data;
+            });
+    
+        }
+    
+        document.getElementById('inputText').onkeypress = function(e){
+            if (!e) e = window.event;
+            var keyCode = e.keyCode || e.which;
+            //write the data to serial when enter key is pressed.
+            if (keyCode == '13'){
+                //console.log("enter pressed", document.getElementById("inputText").value);
+                writeonSer(document.getElementById("inputText").value+"\r\n");
+                document.getElementById('inputText').value = "";
+                return false;
+            }
+        }
+    
+        document.getElementById('button').onclick = function(e){
+            //send test message to serialport
+            // Change this to an output
+            writeonSer('Test serial output');
+        }
+
+        document.getElementById('btnCartInsert').onclick = function(e){
+            //send message to serialport
+            writeonSer("cart insert\r\n");
+        }
+
+        sp.on('error', (err) => {
+            console.log(`Error: ${err.message}`);
+        });
+    </script>
+    <script>
+        // You can also require other files to run in this process
+        require('./renderer.js')
+    </script>
+  </body>
 </html>

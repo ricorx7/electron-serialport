@@ -10,7 +10,7 @@ function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
         width: 800,
-        height: 600,
+        height: 640,
         backgroundColor: "#ccc",
         webPreferences: {
             nodeIntegration: true, // to allow require
@@ -49,6 +49,8 @@ app.on('window-all-closed', function() {
     // to stay active until the user quits explicitly with Cmd + Q
     app.quit()
 })
+
+app.allowRendererProcessReuse = false;
 
 app.on('activate', function() {
     // On OS X it's common to re-create a window in the app when the
